@@ -1,0 +1,147 @@
+---
+title: "Data Wrangling - Missing Values"
+author: "Tom Thorpe"
+date: "March 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Springboard Data Science Foundation Class
+Exercise 01 - Data Wrangling - Refine Data
+
+## Objective
+Practice using *tidy* and *dplyr* packages to clean up data in a practice dataset.
+
+## Exercise Results
+Load the tidy and dplyr libraries for exercise.
+```{r message=FALSE}
+#library(devtools)
+library(tidyr)
+library(dplyr)
+# install.packages("gdata") needed for read.xls function
+# library(gdata) - instructions were to convert to csv before loading, so not needed.
+```
+
+### Identify input and output files
+The practice data set was downloaded into a file called "titanic3.xls", resaved as
+"titanic_original.csv" and
+the cleaned data will be stored in a file named, "titanic_clean.csv".
+```{r}
+infile = "C:/Users/Tom/git/datasciencefoundation/DataWrangleExer02/titanic_original.csv"
+outfile = "C:/Users/Tom/git/datasciencefoundation/DataWrangleExer02/titanic_clean.csv"  
+```
+
+### Read CSV file into a local dataframe
+```{r}
+# titanic <- read.xls(infile) %>% tbl_df # instructions were to convert to csv before loading
+#titanic <- read.csv(file=infile, header=TRUE, sep=",") %>% tbl_df()
+titanic1 <- read.csv(file=infile, header=TRUE, sep=",") 
+titanic <- tbl_df(titanic1)
+```
+
+Lets see what the data looks like:
+```{r}
+str(titanic)
+titanic
+```
+I noticed that there are three additional variables in the data set than in the data description
+pointed to by the exercise URL, 
+*boat*, *body* and *home.dest*. I found the full description of the titanic3.xls data set here
+<http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/titanic3info.txt>. 
+The *boat* is the lifeboat, *body* is the body identification number, and *home.dest* is the home
+destination of the passenger.
+
+### Default Missing *embarked* data
+First fill in any missing data in the *embarked* column with 'S' to represent Southampton.
+I examined the data and noticed that there is no missing data for the *embarked* column
+in the titanic3.xls dataset. To test the code, 
+I updated the first 2 rows of the data set which have 'S' in the *embarked* column 
+to be empty and a single space.
+````{r}
+# Look at the embarked data before changing to null/blank.
+titanic$embarked <- as.character.factor (titanic$embarked)
+titanic %>% select(name,embarked) %>% print(n=5)
+titanic$embarked[1] <- ""
+titanic$embarked[2] <- " "
+# Check the data again after the updates.
+titanic %>% select(name,embarked) %>% print(n=5)
+# Make the updates
+titanic$embarked[titanic$embarked==""|titanic$embarked==" "] <- "S"
+#titanic$embarked[grepl("^ |! {0}",titanic$embarked)] <- "S" # couldn't figure out a regular expression
+#Check the results, printing enough to show not everything was set to "S".
+select(titanic,name,embarked) %>% print(n=15)
+```
+
+### Populate missing *age* data
+Populate the missing data with the mean of the other rows with age data.
+Look at the age data before populating.
+```{r}
+select(titanic,name,age) %>% print(n=18)
+```
+Set the empty age data to the mean of the non-empty age.
+```{r}
+meanAge= mean(titanic$age,na.rm=TRUE)
+medianAge= median(titanic$age,na.rm=TRUE)
+# meanAge= mean(titanic$age[titanic$age>=0],na.rm=TRUE)
+meanAge
+medianAge
+meanAge<-round(meanAge)
+#titanic$age[titanic$age==NA] <- meanAge
+titanic$age[is.na(titanic$age)] <- meanAge
+
+#Check the results
+select(titanic,name,age) %>% print(n=18)
+```
+How else could the missing age data be populated? The median is an alternative measure that may be 
+closer to a representative age. The median in this case is 28. The mean is 29.88 rounded to 30. I believe that since the median is less than the mean, there are more younger people than old people on the ship.
+I would tend to use the median over the mean in this case. Somehow it just feels better. Maybe I will 
+have a better answer after taking the statistics part of the course.
+
+### Populate missing Lifeboat data
+There is missing data for the lifeboat column.
+
+Does it make sense to fill in the cabin numbers with a value? To me, it does not make sense to 
+try to come up with an estimate of the cabin number. How could any meaningful data be created?
+It makes sense to set the missing data to "NONE".
+
+What does a missing value mean here? Missing data could mean the records for the cabin assignment
+were lost or the people were assigned to a big dormitory area instead of a room. But there was 
+probably more than one dormitory and the specific dormitory is unknown.
+Either way, the best that can be done is to do as the assignment suggests and assign missing
+data the value of "NONE".
+
+Update the missing data in the lifeboat data with "NONE". I tried using these commands
+
+  **titanic\$boat[titanic\$boat==""] <- as.factor("NONE")**
+  
+  **titanic\$boat[titanic\$boat==""] <- "NONE"**
+
+But both resulted in the following warning:
+
+   Warning in `[<-.factor`(`*tmp*`, titanic$boat == "", value =
+   structure(c(13L, : invalid factor level, NA generated
+   
+So I did some research and converted the *boat* column from a factor to character data.   
+```{r}
+titanic$boat <- as.character.factor (titanic$boat)
+titanic$boat[titanic$boat==""] <- "NONE"
+#Check the results
+select(titanic,name,boat) %>% print(n=15)
+```
+### Create has_cabin_number column
+Create a *has_cabin_number* column with a value of 1 if the *cabin* column is non-blank.
+```{r}
+titanic <- mutate(titanic,has_cabin_number=ifelse(cabin!="",1,0))
+# Check results
+select(titanic,name,cabin,has_cabin_number) %>% print(n=15)
+glimpse(titanic)
+```
+
+### Save the cleaned data
+```{r}
+write.csv(titanic, file=outfile,row.names=FALSE)
+```
+That concludes the exercise.
