@@ -190,60 +190,53 @@ titanic &lt;- tbl_df(titanic1)</code></pre>
 </div>
 <div id="default-missing-embarked-data" class="section level3">
 <h3>Default Missing <em>embarked</em> data</h3>
-<p>First fill in any missing data in the <em>embarked</em> column with ‘S’ to represent Southampton. I examined the data and noticed that there is no missing data for the <em>embarked</em> column in the titanic3.xls dataset. To test the code, I updated the first 2 rows of the data set which have ‘S’ in the <em>embarked</em> column to be empty and a single space.</p>
-<pre class="r"><code># Look at the embarked data before changing to null/blank.
-titanic$embarked &lt;- as.character.factor (titanic$embarked)
-titanic %&gt;% select(name,embarked) %&gt;% print(n=5)</code></pre>
-<pre><code>## # A tibble: 1,309 x 2
-##   name                                            embarked
-##   &lt;fct&gt;                                           &lt;chr&gt;   
-## 1 Allen, Miss. Elisabeth Walton                   S       
-## 2 Allison, Master. Hudson Trevor                  S       
-## 3 Allison, Miss. Helen Loraine                    S       
-## 4 Allison, Mr. Hudson Joshua Creighton            S       
-## 5 Allison, Mrs. Hudson J C (Bessie Waldo Daniels) S       
-## # ... with 1,304 more rows</code></pre>
-<pre class="r"><code>titanic$embarked[1] &lt;- &quot;&quot;
-titanic$embarked[2] &lt;- &quot; &quot;
-# Check the data again after the updates.
-titanic %&gt;% select(name,embarked) %&gt;% print(n=5)</code></pre>
-<pre><code>## # A tibble: 1,309 x 2
-##   name                                            embarked
-##   &lt;fct&gt;                                           &lt;chr&gt;   
-## 1 Allen, Miss. Elisabeth Walton                   &quot;&quot;      
-## 2 Allison, Master. Hudson Trevor                  &quot; &quot;     
-## 3 Allison, Miss. Helen Loraine                    S       
-## 4 Allison, Mr. Hudson Joshua Creighton            S       
-## 5 Allison, Mrs. Hudson J C (Bessie Waldo Daniels) S       
-## # ... with 1,304 more rows</code></pre>
-<pre class="r"><code># Make the updates
-titanic$embarked[titanic$embarked==&quot;&quot;|titanic$embarked==&quot; &quot;] &lt;- &quot;S&quot;
-#titanic$embarked[grepl(&quot;^ |! {0}&quot;,titanic$embarked)] &lt;- &quot;S&quot; # couldn't figure out a regular expression
-#Check the results, printing enough to show not everything was set to &quot;S&quot;.
-select(titanic,name,embarked) %&gt;% print(n=15)</code></pre>
-<pre><code>## # A tibble: 1,309 x 2
-##    name                                              embarked
-##    &lt;fct&gt;                                             &lt;chr&gt;   
-##  1 Allen, Miss. Elisabeth Walton                     S       
-##  2 Allison, Master. Hudson Trevor                    S       
-##  3 Allison, Miss. Helen Loraine                      S       
-##  4 Allison, Mr. Hudson Joshua Creighton              S       
-##  5 Allison, Mrs. Hudson J C (Bessie Waldo Daniels)   S       
-##  6 Anderson, Mr. Harry                               S       
-##  7 Andrews, Miss. Kornelia Theodosia                 S       
-##  8 Andrews, Mr. Thomas Jr                            S       
-##  9 Appleton, Mrs. Edward Dale (Charlotte Lamson)     S       
-## 10 Artagaveytia, Mr. Ramon                           C       
-## 11 Astor, Col. John Jacob                            C       
-## 12 Astor, Mrs. John Jacob (Madeleine Talmadge Force) C       
-## 13 Aubart, Mme. Leontine Pauline                     C       
-## 14 &quot;Barber, Miss. Ellen \&quot;Nellie\&quot;&quot;                  S       
-## 15 Barkworth, Mr. Algernon Henry Wilson              S       
-## # ... with 1,294 more rows</code></pre>
+<p>First fill in any missing data in the <em>embarked</em> column with ‘S’ to represent Southampton. First, Check to see how many are blank.</p>
+<pre class="r"><code>table(titanic$embarked)</code></pre>
+<pre><code>## 
+##       C   Q   S 
+##   2 270 123 914</code></pre>
+<p>There are two empty <em>embarked</em> values. Make the updates.</p>
+<pre class="r"><code>titanic$embarked[titanic$embarked==&quot;&quot;|titanic$embarked==&quot; &quot;] &lt;- &quot;S&quot;
+#titanic$embarked[grepl(&quot;^ |! {0}&quot;,titanic$embarked)] &lt;- &quot;S&quot; # couldn't figure out a regular expression</code></pre>
+<p>Check the results of the change.</p>
+<pre class="r"><code>table(titanic$embarked)</code></pre>
+<pre><code>## 
+##       C   Q   S 
+##   0 270 123 916</code></pre>
 </div>
 <div id="populate-missing-age-data" class="section level3">
 <h3>Populate missing <em>age</em> data</h3>
 <p>Populate the missing data with the mean of the other rows with age data. Look at the age data before populating.</p>
+<pre class="r"><code>table(titanic$age)</code></pre>
+<pre><code>## 
+## 0.1667 0.3333 0.4167 0.6667   0.75 0.8333 0.9167      1      2      3 
+##      1      1      1      1      3      3      2     10     12      7 
+##      4      5      6      7      8      9     10     11   11.5     12 
+##     10      5      6      4      6     10      4      4      1      3 
+##     13     14   14.5     15     16     17     18   18.5     19     20 
+##      5      8      2      6     19     20     39      3     29     23 
+##   20.5     21     22   22.5     23   23.5     24   24.5     25     26 
+##      1     41     43      1     26      1     47      1     34     30 
+##   26.5     27     28   28.5     29     30   30.5     31     32   32.5 
+##      1     30     32      3     30     40      2     23     24      4 
+##     33     34   34.5     35     36   36.5     37     38   38.5     39 
+##     21     16      2     23     31      2      9     14      1     20 
+##     40   40.5     41     42     43     44     45   45.5     46     47 
+##     18      3     11     18      9     10     21      2      6     14 
+##     48     49     50     51     52     53     54     55   55.5     56 
+##     14      9     15      8      6      4     10      8      1      4 
+##     57     58     59     60   60.5     61     62     63     64     65 
+##      5      6      3      7      1      5      5      4      5      3 
+##     66     67     70   70.5     71     74     76     80 
+##      1      1      2      1      2      1      1      1</code></pre>
+<pre class="r"><code>summary(titanic$age)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##  0.1667 21.0000 28.0000 29.8811 39.0000 80.0000     263</code></pre>
+<pre class="r"><code>filter(titanic,is.na(age)) %&gt;% count</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1   263</code></pre>
 <pre class="r"><code>select(titanic,name,age) %&gt;% print(n=18)</code></pre>
 <pre><code>## # A tibble: 1,309 x 2
 ##    name                                                 age
@@ -267,7 +260,7 @@ select(titanic,name,embarked) %&gt;% print(n=15)</code></pre>
 ## 17 Baxter, Mr. Quigg Edmond                          24.0  
 ## 18 Baxter, Mrs. James (Helene DeLaudeniere Chaput)   50.0  
 ## # ... with 1,291 more rows</code></pre>
-<p>Set the empty age data to the mean of the non-empty age.</p>
+<p>Notice that the 16th entry has NA for age. Set the empty age data to the mean of the non-empty age.</p>
 <pre class="r"><code>meanAge= mean(titanic$age,na.rm=TRUE)
 medianAge= median(titanic$age,na.rm=TRUE)
 # meanAge= mean(titanic$age[titanic$age&gt;=0],na.rm=TRUE)
@@ -275,7 +268,7 @@ meanAge</code></pre>
 <pre><code>## [1] 29.88113</code></pre>
 <pre class="r"><code>medianAge</code></pre>
 <pre><code>## [1] 28</code></pre>
-<pre class="r"><code>meanAge&lt;-round(meanAge)
+<pre class="r"><code>meanAge&lt;-trunc(meanAge) # truncate the age since only age less than 1 have fractional values.
 #titanic$age[titanic$age==NA] &lt;- meanAge
 titanic$age[is.na(titanic$age)] &lt;- meanAge
 
@@ -299,10 +292,15 @@ select(titanic,name,age) %&gt;% print(n=18)</code></pre>
 ## 13 Aubart, Mme. Leontine Pauline                     24.0  
 ## 14 &quot;Barber, Miss. Ellen \&quot;Nellie\&quot;&quot;                  26.0  
 ## 15 Barkworth, Mr. Algernon Henry Wilson              80.0  
-## 16 Baumann, Mr. John D                               30.0  
+## 16 Baumann, Mr. John D                               29.0  
 ## 17 Baxter, Mr. Quigg Edmond                          24.0  
 ## 18 Baxter, Mrs. James (Helene DeLaudeniere Chaput)   50.0  
 ## # ... with 1,291 more rows</code></pre>
+<pre class="r"><code>filter(titanic,is.na(age)) %&gt;% count</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1     0</code></pre>
 <p>How else could the missing age data be populated? The median is an alternative measure that may be closer to a representative age. The median in this case is 28. The mean is 29.88 rounded to 30. I believe that since the median is less than the mean, there are more younger people than old people on the ship. I would tend to use the median over the mean in this case. Somehow it just feels better. Maybe I will have a better answer after taking the statistics part of the course.</p>
 </div>
 <div id="populate-missing-lifeboat-data" class="section level3">
@@ -315,7 +313,12 @@ select(titanic,name,age) %&gt;% print(n=18)</code></pre>
 <p><strong>titanic$boat[titanic$boat==“”] &lt;- “NONE”</strong></p>
 <p>But both resulted in the following warning:</p>
 <p>Warning in <code>[&lt;-.factor</code>(<code>*tmp*</code>, titanic$boat == “”, value = structure(c(13L, : invalid factor level, NA generated</p>
-<p>So I did some research and converted the <em>boat</em> column from a factor to character data.</p>
+<p>So I did some research and converted the <em>boat</em> column from a factor to character data. But I don’t understand why the column was a factor and not character data to begin with. I need to research this.</p>
+<pre class="r"><code>filter(titanic, boat ==&quot;&quot;) %&gt;% count()</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1   823</code></pre>
 <pre class="r"><code>titanic$boat &lt;- as.character.factor (titanic$boat)
 titanic$boat[titanic$boat==&quot;&quot;] &lt;- &quot;NONE&quot;
 #Check the results
@@ -339,6 +342,11 @@ select(titanic,name,boat) %&gt;% print(n=15)</code></pre>
 ## 14 &quot;Barber, Miss. Ellen \&quot;Nellie\&quot;&quot;                  6    
 ## 15 Barkworth, Mr. Algernon Henry Wilson              B    
 ## # ... with 1,294 more rows</code></pre>
+<pre class="r"><code>filter(titanic, boat ==&quot;&quot;) %&gt;% count()</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1     0</code></pre>
 </div>
 <div id="create-has_cabin_number-column" class="section level3">
 <h3>Create has_cabin_number column</h3>
@@ -378,7 +386,7 @@ select(titanic,name,cabin,has_cabin_number) %&gt;% print(n=15)</code></pre>
 ## $ ticket           &lt;fct&gt; 24160, 113781, 113781, 113781, 113781, 19952,...
 ## $ fare             &lt;dbl&gt; 211.3375, 151.5500, 151.5500, 151.5500, 151.5...
 ## $ cabin            &lt;fct&gt; B5, C22 C26, C22 C26, C22 C26, C22 C26, E12, ...
-## $ embarked         &lt;chr&gt; &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, &quot;S&quot;, ...
+## $ embarked         &lt;fct&gt; S, S, S, S, S, S, S, S, S, C, C, C, C, S, S, ...
 ## $ boat             &lt;chr&gt; &quot;2&quot;, &quot;11&quot;, &quot;NONE&quot;, &quot;NONE&quot;, &quot;NONE&quot;, &quot;3&quot;, &quot;10&quot;,...
 ## $ body             &lt;int&gt; NA, NA, NA, 135, NA, NA, NA, NA, NA, 22, 124,...
 ## $ home.dest        &lt;fct&gt; St Louis, MO, Montreal, PQ / Chesterville, ON...

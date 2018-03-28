@@ -56,44 +56,43 @@ destination of the passenger.
 
 ### Default Missing *embarked* data
 First fill in any missing data in the *embarked* column with 'S' to represent Southampton.
-I examined the data and noticed that there is no missing data for the *embarked* column
-in the titanic3.xls dataset. To test the code, 
-I updated the first 2 rows of the data set which have 'S' in the *embarked* column 
-to be empty and a single space.
-````{r}
-# Look at the embarked data before changing to null/blank.
-titanic$embarked <- as.character.factor (titanic$embarked)
-titanic %>% select(name,embarked) %>% print(n=5)
-titanic$embarked[1] <- ""
-titanic$embarked[2] <- " "
-# Check the data again after the updates.
-titanic %>% select(name,embarked) %>% print(n=5)
-# Make the updates
+First, Check to see how many are blank.
+```{r}
+table(titanic$embarked)
+```
+There are two empty *embarked* values. Make the updates.
+```{r}
 titanic$embarked[titanic$embarked==""|titanic$embarked==" "] <- "S"
 #titanic$embarked[grepl("^ |! {0}",titanic$embarked)] <- "S" # couldn't figure out a regular expression
-#Check the results, printing enough to show not everything was set to "S".
-select(titanic,name,embarked) %>% print(n=15)
+```
+Check the results of the change.
+```{r}
+table(titanic$embarked)
 ```
 
 ### Populate missing *age* data
 Populate the missing data with the mean of the other rows with age data.
 Look at the age data before populating.
 ```{r}
+table(titanic$age)
+summary(titanic$age)
+filter(titanic,is.na(age)) %>% count
 select(titanic,name,age) %>% print(n=18)
 ```
-Set the empty age data to the mean of the non-empty age.
+Notice that the 16th entry has NA for age. Set the empty age data to the mean of the non-empty age.
 ```{r}
 meanAge= mean(titanic$age,na.rm=TRUE)
 medianAge= median(titanic$age,na.rm=TRUE)
 # meanAge= mean(titanic$age[titanic$age>=0],na.rm=TRUE)
 meanAge
 medianAge
-meanAge<-round(meanAge)
+meanAge<-trunc(meanAge) # truncate the age since only age less than 1 have fractional values.
 #titanic$age[titanic$age==NA] <- meanAge
 titanic$age[is.na(titanic$age)] <- meanAge
 
 #Check the results
 select(titanic,name,age) %>% print(n=18)
+filter(titanic,is.na(age)) %>% count
 ```
 How else could the missing age data be populated? The median is an alternative measure that may be 
 closer to a representative age. The median in this case is 28. The mean is 29.88 rounded to 30. I believe that since the median is less than the mean, there are more younger people than old people on the ship.
@@ -124,12 +123,14 @@ But both resulted in the following warning:
    Warning in `[<-.factor`(`*tmp*`, titanic$boat == "", value =
    structure(c(13L, : invalid factor level, NA generated
    
-So I did some research and converted the *boat* column from a factor to character data.   
+So I did some research and converted the *boat* column from a factor to character data. But I don't understand why the column was a factor and not character data to begin with. I need to research this.  
 ```{r}
+filter(titanic, boat =="") %>% count()
 titanic$boat <- as.character.factor (titanic$boat)
 titanic$boat[titanic$boat==""] <- "NONE"
 #Check the results
 select(titanic,name,boat) %>% print(n=15)
+filter(titanic, boat =="") %>% count()
 ```
 ### Create has_cabin_number column
 Create a *has_cabin_number* column with a value of 1 if the *cabin* column is non-blank.
