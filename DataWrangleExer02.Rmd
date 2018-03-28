@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Springboard Data Science Foundation Class
-Exercise 01 - Data Wrangling - Refine Data
+Exercise 02 - Data Wrangling - Fill in Missing values.
 
 ## Objective
 Practice using *tidy* and *dplyr* packages to clean up data in a practice dataset.
